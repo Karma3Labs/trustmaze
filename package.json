@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Karma3Labs/trustmaze/issues"
   },
-  "homepage": "https://github.com/Karma3Labs/trustmaze#readme"
+  "homepage": "https://github.com/Karma3Labs/trustmaze#readme",
+  "dependencies": {
+    "truffle": "^5.7.8"
+  }
 }
