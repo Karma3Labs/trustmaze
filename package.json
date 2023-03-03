@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Karma3Labs/trustmaze#readme",
   "dependencies": {
+    "@openzeppelin/contracts": "^4.8.2",
     "truffle": "^5.7.8"
   }
 }
