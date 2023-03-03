@@ -1,0 +1,29 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git+https://github.com/Karma3Labs/attestation.git",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Karma3Labs/attestation/issues"
+  },
+  "homepage": "https://github.com/Karma3Labs/attestation#readme",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q index.js\""
+  },
+  "dependencies": {
+    "csvtojson": "^2.0.10",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "inquirer": "^8.2.5",
+    "lodash": "^4.17.21",
+    "underscore": "^1.13.6",
+    "web3": "^1.8.2",
+    "yargs": "^17.7.1"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "nodemon": "^2.0.20"
+  }
+}
