@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/Karma3Labs/trustmaze#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.2"
+    "@openzeppelin/contracts": "^4.8.2",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",

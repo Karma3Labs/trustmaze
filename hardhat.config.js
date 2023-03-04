@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require('dotenv').config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -7,6 +8,11 @@ module.exports = {
     localhost: {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
+    },
+    matic: {
+      url: "https://polygon-testnet.public.blastapi.io",
+      accounts: [process.env.PK],
+      chainId: 80001,
     }
   }
 };
