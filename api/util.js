@@ -1,6 +1,12 @@
 const _ = require('underscore');
 const Web3 = require('web3');
 
+const SCHEMA_TYPES = {
+  GENERIC: 0,
+  JSON: 1,
+  YAML: 2,
+}
+
 const AttestationJSON = require('./Attestation.json');
 
 let web3;
@@ -51,6 +57,7 @@ async function registerSchema(schemaKey, schemaType, schemaDefinition) {
 
 async function getSchemaById(schemaId) {
   const result = await contract.methods.getSchemaById(schemaId).call();
+  result.schemaType = SCHEMA_TYPES[result.schemaType];
   const schema = _.omit(result, '0', '1', '2', '3', '4');
   schema.definition = Web3.utils.hexToAscii(schema.definition);
   return schema;
@@ -127,6 +134,7 @@ function handleWeb3Error(err) {
 }
 
 module.exports = {
+  SCHEMA_TYPES,
   init,
   getOwnerAddress,
   getTestAccounts,

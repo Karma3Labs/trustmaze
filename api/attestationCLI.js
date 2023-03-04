@@ -6,7 +6,6 @@ const util = require('./util');
 
 let testAccounts;
 
-
 async function init(provider_url) {
   await util.init(provider_url, process.env.PRIVATE_KEY);
   testAccounts = await util.getTestAccounts();
@@ -20,13 +19,13 @@ async function registerSchema() {
       type: 'input',
       name: 'schemaKey',
       message: 'Specify a namespace key of length 31 chars or less (e.g., io.k3l.atstn.eigen):',
-      validate: (input) => {return input.length <= 31 ? true: false}, 
+      validate: (input) => { return input.length <= 31 ? true : false },
     },
     {
       type: 'rawlist',
       name: 'schemaType',
       message: 'Select a Schema Type:',
-      choices: ['GENERIC', 'JSON', 'YAML'], 
+      choices: Object.keys(util.SCHEMA_TYPES),
     },
     {
       type: 'input',
@@ -34,13 +33,13 @@ async function registerSchema() {
       message: 'Specify a definition ({"rationale":{"type":"string"}}):',
       // required field and work around bug in web3js ABICoder.encodeParameters 
       // that assumes bytes parameter is of length >= 2
-      validate: (input) => {return input.length > 1 ? true: false},  
+      validate: (input) => { return input.length > 1 ? true : false },
     },
   ])
-  .then(async (answers) => {
-    return await util.registerSchema(answers.schemaKey, answers.schemaType, answers.schemaDefinition);
-  })
-  .catch();
+    .then(async (answers) => {
+      return await util.registerSchema(answers.schemaKey, util.SCHEMA_TYPES[answers.schemaType], answers.schemaDefinition);
+    })
+    .catch();
 }
 
 async function getSchemaById() {
@@ -51,7 +50,7 @@ async function getSchemaById() {
       name: 'schemaId',
       message: 'Id of the schema:',
       default: '1',
-      validate: (input) => {return parseInt(input) > 0},
+      validate: (input) => { return parseInt(input) > 0 },
     },
   ]);
   console.log(await util.getSchemaById(answers.schemaId));
@@ -77,35 +76,35 @@ async function publishAttestation() {
       name: 'schemaId',
       message: 'Id of the schema:',
       default: '1',
-      validate: (input) => {return parseInt(input) > 0},
+      validate: (input) => { return parseInt(input) > 0 },
     },
     {
       type: 'input',
       name: 'data',
       message: 'Attestation data ({"rationale":"Strong EigenTrust Relationship"}):',
-      validate: (input) => {return input ? true: false}, // required field
+      validate: (input) => { return input ? true : false }, // required field
     },
   ])
-  .then(async (answers) => {
-    return await util.publishAttestation(
-      answers.from, answers.recipient, answers.schemaId, answers.data);
-  })
-  .catch();  
+    .then(async (answers) => {
+      return await util.publishAttestation(
+        answers.from, answers.recipient, answers.schemaId, answers.data);
+    })
+    .catch();
 }
 
 async function publishBulkAttestations() {
   console.log('publishBulkAttestations');
-  const answers =  await inquirer.prompt([
+  const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'schemaId',
       message: 'Id of the schema:',
       default: '1',
-      validate: (input) => {return parseInt(input) > 0},
+      validate: (input) => { return parseInt(input) > 0 },
     },
   ]);
   const sampleAttestations = [
-    { 
+    {
       from: '0xb559Eb65B74fBCDE44dc754f92C47Ec73628b056',
       recipient: '0xc7aA28c34AC556921e2A1ff0eAE3f87F652873b5',
       data: 'Hello'
@@ -129,46 +128,46 @@ async function publishBulkAttestationsFromCSV() {
       name: 'schemaId',
       message: 'Id of the schema:',
       default: '1',
-      validate: (input) => {return parseInt(input) > 0},
+      validate: (input) => { return parseInt(input) > 0 },
     },
     {
       type: 'rawlist',
       name: 'attestor',
       message: 'Address of attestor:',
       choices: testAccounts,
-    },    
+    },
     {
       type: 'input',
       name: 'csvFilepath',
       message: 'Filepath of CSV:',
-      validate: (input) => {return input ? true : false},
+      validate: (input) => { return input ? true : false },
     },
     {
       type: 'input',
       name: 'attestee',
       message: 'Attestee column name:',
-      validate: (input) => {return input ? true : false},
-    },   
+      validate: (input) => { return input ? true : false },
+    },
     {
       type: 'input',
       name: 'value',
       message: 'Value column name:',
-      validate: (input) => {return input ? true : false},
-    },    
+      validate: (input) => { return input ? true : false },
+    },
   ])
-  .then(async (answers) => {
-    const jsonArray = await csvToJson().fromFile(answers.csvFilepath);
-    const attestations = jsonArray.map((record) => {
-      return {
-        from: answers.attestor,
-        recipient: record[answers.attestee],
-        data: record[answers.value]
-      }
+    .then(async (answers) => {
+      const jsonArray = await csvToJson().fromFile(answers.csvFilepath);
+      const attestations = jsonArray.map((record) => {
+        return {
+          from: answers.attestor,
+          recipient: record[answers.attestee],
+          data: record[answers.value]
+        }
+      })
+      const _attestations = attestations.map(util.mapToAttestation);
+      return await util.publishBulkAttestations(answers.schemaId, _attestations);
     })
-    const _attestations = attestations.map(util.mapToAttestation);
-    return await util.publishBulkAttestations(answers.schemaId, _attestations);  
-  })
-  .catch();  
+    .catch();
 }
 
 async function getAttestationData() {
@@ -197,14 +196,14 @@ async function getAttestationData() {
       name: 'schemaId',
       message: 'Id of the schema:',
       default: '1',
-      validate: (input) => {return parseInt(input) > 0},
+      validate: (input) => { return parseInt(input) > 0 },
     },
   ])
-  .then(async (answers) => {
-    console.log(await util.getAttestationData(
-      answers.publisher, answers.from, answers.recipient, answers.schemaId));
-  })
-  .catch();  
+    .then(async (answers) => {
+      console.log(await util.getAttestationData(
+        answers.publisher, answers.from, answers.recipient, answers.schemaId));
+    })
+    .catch();
 }
 
 (async () => {
@@ -226,38 +225,38 @@ async function getAttestationData() {
         name: 'operation',
         message: 'Choose an operation:',
         choices: [
-          'registerSchema', 
-          'getSchemaById', 
-          'publishAttestation', 
+          'registerSchema',
+          'getSchemaById',
+          'publishAttestation',
           'publishBulkAttestations',
-          'publishBulkAttestationsFromCSV', 
+          'publishBulkAttestationsFromCSV',
           'getAttestationData',
         ],
       },
     ]);
-    console.info('Operation:', answers.operation);
-    switch (answers.operation) {
-      case registerSchema.name:
-        await registerSchema();
-        break;
-      case publishAttestation.name:
-        await publishAttestation();
-        break;
-      case getSchemaById.name:
-        await getSchemaById();
-        break;
-      case publishBulkAttestations.name:
-        await publishBulkAttestations();
-        break;
-      case publishBulkAttestationsFromCSV.name:
-        await publishBulkAttestationsFromCSV();
-        break;
-        case getAttestationData.name:
-        await getAttestationData();
-        break;
-      default:
-        ;
-    }
+  console.info('Operation:', answers.operation);
+  switch (answers.operation) {
+    case registerSchema.name:
+      await registerSchema();
+      break;
+    case publishAttestation.name:
+      await publishAttestation();
+      break;
+    case getSchemaById.name:
+      await getSchemaById();
+      break;
+    case publishBulkAttestations.name:
+      await publishBulkAttestations();
+      break;
+    case publishBulkAttestationsFromCSV.name:
+      await publishBulkAttestationsFromCSV();
+      break;
+    case getAttestationData.name:
+      await getAttestationData();
+      break;
+    default:
+      ;
+  }
 
   process.exit();
 })();

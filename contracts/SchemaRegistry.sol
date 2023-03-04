@@ -16,7 +16,6 @@ contract SchemaRegistry is Ownable {
   */
   /*
     * TODO gas optimizations if we decide to open up Schema Registry to everyone
-    * 1. consider using SmallCounters (uint32) for schemaId
     * 2. consider using enum (uint8) instead of string for schemaType
     * 3. remove key from Schema struct because it is redundant 
     * 4. rearrange struct fields for better packing
@@ -25,13 +24,14 @@ contract SchemaRegistry is Ownable {
 
   //TODO should this be enums
   mapping(string => uint8) public schemaTypes;
+  enum SchemaType { CUSTOM, JSON, YAML }
 
   struct Schema {
     uint256 schemaId; 
     address creator;
     string key; 
-    string schemaType;
-    bytes definition;
+    SchemaType schemaType;
+    string definition;
   }
 
   mapping(bytes32 => Schema) public schemas; 
@@ -40,56 +40,35 @@ contract SchemaRegistry is Ownable {
   event SchemaRegistered(
     uint256 schemaId,
     address indexed creator,
-    string indexed keyIndexed, //hashed
-    string key, // raw
-    string indexed schemaTypeIndexed,
-    string schemaType,
-    bytes definition
+    string key,
+    SchemaType schemaType,
+    string definition
   );
-  
-  constructor() {
-    schemaTypes['CUSTOM']= 0;
-    schemaTypes['JSON'] = 1;
-    schemaTypes['YAML'] = 2;
-    schemaTypes['PROTO'] = 3;
-  }
 
-  //TODO return schemaId
   function registerSchema(
     string memory _key, 
-    string memory _schemaType, 
-    bytes memory _definition
+    SchemaType _schemaType, 
+    string memory _definition
   ) external onlyOwner {
 
     bytes32 hashed = keccak256(abi.encode(msg.sender, _key));
     require(schemas[hashed].schemaId == 0, "Schema already exists");
 
-    string memory sType = schemaTypes[_schemaType] == 0 ? 'CUSTOM' : _schemaType;
-
     _schemaIdCounter++;
 
-    Schema memory _schema = Schema(_schemaIdCounter, msg.sender, _key, sType, _definition);
-
-    schemas[hashed] = _schema;
+    schemas[hashed] = Schema(_schemaIdCounter, msg.sender, _key, _schemaType, _definition);
     schemaIds[_schemaIdCounter] = hashed;
 
-    emit SchemaRegistered(_schemaIdCounter, msg.sender, _key, _key, sType, sType, _definition);
+    emit SchemaRegistered(_schemaIdCounter, msg.sender, _key, _schemaType, _definition);
   } 
 
   function getSchemaById(uint256 _schemaId) external view 
-  returns (
-    uint256 schemaId,
-    address creator,
-    string memory key,
-    string memory schemaType,
-    bytes memory definition
-
-)
+  returns (Schema memory)
   {
     bytes32 hashed = schemaIds[_schemaId];
     require(hashed != 0x00, "Invalid Schema Id");
 
     Schema storage _schema = schemas[hashed];
-    return (_schema.schemaId, _schema.creator, _schema.key, _schema.schemaType, _schema.definition);
+    return (_schema);
   }
 }
