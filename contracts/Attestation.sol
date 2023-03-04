@@ -69,6 +69,7 @@ import "./SchemaRegistry.sol";
     emit AttestationPublished(msg.sender, _from, _recipient, _schemaId, _data);
   }
 
+  // TODO: Remove schemaId
   function attestBatch(uint256 _schemaId, AttestationRecord[] calldata _attestations) external {
     uint256 length = _attestations.length;
     for (uint256 i = 0; i < length;) {

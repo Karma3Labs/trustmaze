@@ -104,10 +104,7 @@ async function publishBulkAttestations(schemaId, attestations) {
 }
 
 function mapToAttestation(record) {
-  return {
-    ...record,
-    data: Web3.utils.asciiToHex(record.data) // byte -> string
-  }
+  return record;
 }
 
 async function getAttestationData(publisher, from, recipient, schemaId) {

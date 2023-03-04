@@ -13,29 +13,35 @@ const yargs = require("yargs");
 const util = require('./util');
 
 const options = yargs
- .usage("Usage: -r <rpc-url> " +
-  "-p <private-key> -c <csv-file> -s <schema-id> " + 
-  "-a <attestee-column> -d <data-column>")
- .option("r", { alias: "rpc-url", describe: "RPC Url to connect with blockchain", type: "string", demandOption: true })
- .option("p", { alias: "private-key", describe: "Private key", type: "string", demandOption: true })
- .option("c", { alias: "contract", describe: "Contract address", type: "string", demandOption: true })
- .option("f", { alias: "csv-filepath", describe: "Path to csv file", type: "string", demandOption: true })
- .option("s", { alias: "schema-id", describe: "Schema Id", type: "string", demandOption: true })
- .option("a", { alias: "attestee-column", 
-                describe: "Column header that has attesstee addresses", 
-                type: "string", 
-                demandOption: true })
- .option("d", { alias: "data-column", 
-                describe: "Column header that has attestation data", 
-                type: "string", 
-                demandOption: true })
- .argv;
+  .usage("Usage: -r <rpc-url> " +
+    "-p <private-key> -c <csv-file> -s <schema-id> " +
+    "-a <attestee-column> -d <data-column>")
+  .option("r", { alias: "rpc-url", describe: "RPC Url to connect with blockchain", type: "string", demandOption: true })
+  .option("p", { alias: "private-key", describe: "Private key", type: "string", demandOption: true })
+  .option("c", { alias: "contract", describe: "Contract address", type: "string", demandOption: true })
+  .option("f", { alias: "csv-filepath", describe: "Path to csv file", type: "string", demandOption: true })
+  .option("s", { alias: "schema-id", describe: "Schema Id", type: "string", demandOption: true })
+  .option("a", {
+    alias: "attestee-column",
+    describe: "Column header that has attesstee addresses",
+    type: "string",
+    demandOption: true
+  })
+  .option("d", {
+    alias: "data-column",
+    describe: "Column header that has attestation data",
+    type: "string",
+    demandOption: true
+  })
+  .argv;
 
 console.log(options);
 
-async function mapColumns(record) {
+async function mapColumns(schemaId, record) {
   const ownerAddress = await util.getOwnerAddress();
   return {
+    schemaId: schemaId,
+    publisher: ownerAddress,
     from: ownerAddress,
     recipient: record[options.attesteeColumn],
     data: record[options.dataColumn]
@@ -51,7 +57,7 @@ async function mapColumns(record) {
   const jsonArray = await csvToJson().fromFile(options.csvFilepath);
 
   console.log("Creating attestation records");
-  const attestations = await Promise.all(jsonArray.map(mapColumns));
+  const attestations = await Promise.all(jsonArray.map(x => mapColumns(options.schemaId, x)));
   const _attestations = attestations.map(util.mapToAttestation);
 
   console.log("Publishing attestations");
