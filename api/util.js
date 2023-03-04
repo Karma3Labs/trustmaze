@@ -10,11 +10,7 @@ let owner;
 async function init(provider_url, owner_private_key) {
   web3 = new Web3(provider_url);
   web3.eth.handleRevert = true;
-  let networkId = await web3.eth.net.getId();
-  let network = AttestationJSON.networks[networkId];
-  let address = network ? network.address : process.env.CONTRACT_ADDRESS;
-  let abi = AttestationJSON.abi;
-  contract = new web3.eth.Contract(abi, address);
+  contract = new web3.eth.Contract(AttestationJSON.abi, process.env.CONTRACT_ADDRESS);
   owner = web3.eth.accounts.privateKeyToAccount(owner_private_key);
   web3.eth.accounts.wallet.add(owner_private_key); //add key to wallet so txn automatically signed
   // TODO set an upper threshold for how much gas is acceptable 

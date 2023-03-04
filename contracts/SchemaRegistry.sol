@@ -21,8 +21,7 @@ contract SchemaRegistry is Ownable {
     * 3. remove key from Schema struct because it is redundant 
     * 4. rearrange struct fields for better packing
   */
-  using Counters for Counters.Counter;
-  Counters.Counter private _schemaIdCounter;
+  uint256 private _schemaIdCounter;
 
   //TODO should this be enums
   mapping(string => uint8) public schemaTypes;
@@ -67,15 +66,14 @@ contract SchemaRegistry is Ownable {
 
     string memory sType = schemaTypes[_schemaType] == 0 ? 'CUSTOM' : _schemaType;
 
-    _schemaIdCounter.increment(); // IDs start from 1
-    uint256 schemaId = _schemaIdCounter.current();
+    _schemaIdCounter++;
 
-    Schema memory _schema = Schema(schemaId, msg.sender, _key, sType, _definition);
+    Schema memory _schema = Schema(_schemaIdCounter, msg.sender, _key, sType, _definition);
 
     schemas[hashed] = _schema;
-    schemaIds[schemaId] = hashed;
+    schemaIds[_schemaIdCounter] = hashed;
 
-    emit SchemaRegistered(schemaId, msg.sender, _key, _key, sType, sType, _definition);
+    emit SchemaRegistered(_schemaIdCounter, msg.sender, _key, _key, sType, sType, _definition);
   } 
 
   function getSchemaById(uint256 _schemaId) external view 

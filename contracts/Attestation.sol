@@ -10,37 +10,28 @@ import "./SchemaRegistry.sol";
  * @custom:beta
  */
  contract Attestation is SchemaRegistry {
-  /*
-    * TODO gas optimizations
-    * 1. 
-  */
-
   string public constant SEMVER = "0.1.0";
 
-  //Not used for storage. Used just for function calls.
   struct AttestationRecord {
-    address from; // 20 bytes
-    address recipient; // 20 bytes
-    bytes data;
+    uint256 schemaId;
+    address publisher;
+    address from;
+    address recipient;
+    string data;
   }
 
-// TODO revisit this mapping path after implementing read/publish functions
-/**
-  * @notice Maps Publisher => From => Recipient => Schema ID => Data
- */
-  mapping(address => mapping(address => mapping(address => mapping(uint256 => bytes)))) public attestations;
-
-  // TODO do we need attestation data in the Event ? 
-  // Gas costs when emitting events. 
-  // We can emit without data and let clients read from blockchain if needed.
-  // Read from blockchain is gas free but may incur API costs from provider (e.g., Alchemy API costs)
   event AttestationPublished(
     address indexed publisher,
     address indexed from,
     address indexed recipient,
     uint256 schemaId,
-    bytes data
+    string data
   );
+
+  AttestationRecord[] public attestations;
+  uint256 attestationCount = 0; 
+  mapping(uint256 => uint256[]) public attestationIdxBySchemaId;
+  mapping(address => uint256[]) public attestationIdxByPublisher;
 
   /**
     * Emits a {AttestationPublished} event.
@@ -55,7 +46,7 @@ import "./SchemaRegistry.sol";
     address _from,
     address _recipient,
     uint256 _schemaId,
-    bytes memory _data
+    string memory _data
   ) public {
     require(
       _from != address(0) && _from != address(0),
@@ -63,7 +54,17 @@ import "./SchemaRegistry.sol";
     ); 
     require(schemaIds[_schemaId] != 0x00, "Invalid _schemaId");
     
-    attestations[msg.sender][_from][_recipient][_schemaId] = _data;
+    attestations.push(AttestationRecord({
+      schemaId: _schemaId,
+      publisher: msg.sender,
+      from: _from,
+      recipient: _recipient,
+      data: _data
+    }));
+
+    attestationIdxByPublisher[msg.sender].push(attestationCount);
+    attestationIdxBySchemaId[_schemaId].push(attestationCount);
+    attestationCount++;
 
     emit AttestationPublished(msg.sender, _from, _recipient, _schemaId, _data);
   }
@@ -79,18 +80,41 @@ import "./SchemaRegistry.sol";
     }
   }
 
-  function getAttestationData(    
-    address _publisher,
-    address _from,
-    address _recipient,
-    uint256 _schemaId) 
-  external view 
-  returns (
-    bytes memory data
-  )
-  {
-    bytes storage _data = attestations[_publisher][_from][_recipient][_schemaId];
-    require(_data.length > 0, "Invalid input params");
-    return _data;
+  /**
+    * @notice Get all attestations published by a publisher.
+    * @param _schemaId Valid schema defined in the Schema registry. 
+    * @return AttestationRecord[] Array of attestation records.
+    */
+  function getAttestationsBySchemaId(uint256 _schemaId) external view returns (AttestationRecord[] memory) {
+    uint256[] memory attestationIdxs = attestationIdxBySchemaId[_schemaId];
+    uint256 length = attestationIdxs.length;
+    AttestationRecord[] memory _attestations = new AttestationRecord[](length);
+
+    for (uint256 i = 0; i < length;) {
+      _attestations[i] = attestations[attestationIdxs[i]];
+      unchecked {
+        ++i;
+      }
+    }
+    return _attestations;
+  }
+
+  /**
+   * @notice Get all attestations published by a publisher.
+   * @param _publisher Address of the publisher.
+   * @return AttestationRecord[] Array of attestation records.
+   */
+  function getAttestationsByPublisher(address _publisher) external view returns (AttestationRecord[] memory) {
+    uint256[] memory attestationIdxs = attestationIdxByPublisher[_publisher];
+    uint256 length = attestationIdxs.length;
+    AttestationRecord[] memory _attestations = new AttestationRecord[](length);
+
+    for (uint256 i = 0; i < length;) {
+      _attestations[i] = attestations[attestationIdxs[i]];
+      unchecked {
+        ++i;
+      }
+    }
+    return _attestations;
   }
 }
