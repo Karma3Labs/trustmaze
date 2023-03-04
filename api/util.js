@@ -1,14 +1,11 @@
 const _ = require('underscore');
 const Web3 = require('web3');
 
-const feeUtil = require('./feeUtil');
-
 const AttestationJSON = require('./Attestation.json');
 
 let web3;
 let contract;
 let owner;
-let maxFeePerGas;
 
 async function init(provider_url, owner_private_key) {
   web3 = new Web3(provider_url);
@@ -20,7 +17,6 @@ async function init(provider_url, owner_private_key) {
   contract = new web3.eth.Contract(abi, address);
   owner = web3.eth.accounts.privateKeyToAccount(owner_private_key);
   web3.eth.accounts.wallet.add(owner_private_key); //add key to wallet so txn automatically signed
-  maxFeePerGas = await feeUtil.estimateMaxFeePerGas(web3);
   // TODO set an upper threshold for how much gas is acceptable 
   return true;
 }
@@ -76,7 +72,6 @@ async function publishAttestation(from, recipient, schemaId, data) {
     from: owner.address,
     to: contract.options.address,
     gas: estimatedGas,
-    maxFeePerGas: maxFeePerGas,
     data: contract.methods.attest(from, recipient, schemaId, _data).encodeABI(),
     nonce: nonce,
   };
@@ -96,7 +91,6 @@ async function publishBulkAttestations(schemaId, attestations) {
     from: owner.address,
     to: contract.options.address,
     gas: estimatedGas,
-    maxFeePerGas: maxFeePerGas,
     data: contract.methods.attestBatch(schemaId, attestations).encodeABI(),
     nonce: nonce,
   };
