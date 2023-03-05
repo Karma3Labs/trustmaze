@@ -9,7 +9,6 @@ node bulkAttest.js \
 */
 const csvToJson = require('csvtojson');
 const yargs = require("yargs");
-
 const util = require('./util');
 
 const options = yargs
