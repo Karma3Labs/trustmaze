@@ -1,12 +1,3 @@
-/* 
-node bulkAttest.js \
--r ws://localhost:8545 \
--p 0x351cff2a18f81c9ae9f3d1d6f41526e723de270a59c5939f53c1c2f7d159d1bd \
--c /tmp/gt-lens-top100.csv \
--s 1 \
--a owner_address \
--d v
-*/
 const csvToJson = require('csvtojson');
 const yargs = require("yargs");
 const util = require('./util');
